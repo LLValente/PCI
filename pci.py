@@ -3,13 +3,37 @@ from urllib.request import urlopen
 import re
 
 
-def main():
 
-    html = urlopen('https://www.pciconcursos.com.br/professores/')
-    bs = BeautifulSoup(html, 'html.parser')
+def Scrappy():
 
-    def pegar_regioes(bs_obj):
+    def __init__(self):
+
+        self.html = urlopen('https://www.pciconcursos.com.br/professores/')
+        self.bs = BeautifulSoup(self.html, 'html.parser')
         
+        self.regioes = self.pegar_regioes(self.bs)
+        self.datas = self.pegar_datas(self.bs)
+        self.links = self.pegar_links(self.bs)
+        self.orgaos = self.pegar_orgaos(self.bs)
+        self.titulos = self.pegar_titulos(self.bs)
+
+        self.regioes_de_interesse = ['SP', 
+                                     'RJ', 
+                                     'NC', 
+                                     'MG', 
+                                     'ES']
+
+        with open('concdata.txt', 'w') as f:
+            for n in range(len(self.regioes)):
+                if self.regioes[n] in self.regioes_INTERESSE:
+                    print(f'{self.regioes[n]};{self.datas[n]};{self.orgaos[n]};{self.titulos[n]};{self.links[n]};{self.pegar_edital(self.links[n])}')
+                    f.write(f'{self.regioes[n]};{self.datas[n]};{self.orgaos[n]};{self.titulos[n]};{self.links[n]};{self.pegar_edital(self.links[n])}\n')
+                else:
+                    continue
+
+    
+    def pegar_regioes(bs_obj):
+
         regioes = []
 
         for reg in bs_obj.html.body.findAll('div', class_='cc'):
@@ -18,6 +42,7 @@ def main():
         regioes = [el.replace('\xa0', 'NC') for el in regioes]
         
         return regioes
+
 
     def pegar_datas(bs_obj):
         
@@ -31,6 +56,7 @@ def main():
 
         return datas
 
+
     def pegar_links(bs_obj):
         
         links = []
@@ -41,6 +67,7 @@ def main():
             links.append(str(link).split('"')[1])
             
         return links
+
 
     def pegar_orgaos(bs_obj):
         
@@ -53,6 +80,7 @@ def main():
             
         return orgaos
 
+
     def pegar_titulos(bs_obj):
         
         titulos = []
@@ -64,34 +92,20 @@ def main():
             
         return titulos
 
-    def edital(link):
+    
+    def pegar_edital(link):
 
         page = urlopen(link)
         bsaux = BeautifulSoup(page, 'html.parser')
-        ed = bsaux.html.body.findAll('a', attrs={'href': re.compile('.pdf$'), 'rel': 'nofollow'})
 
-        if len(ed) == 0:
-            return 'Edital não encontrado'
-        elif len(ed) == 1:
-            return ed[0]['href']
-        elif len(ed) > 1:
-            return 'Mais de um edital encontrado'
+        compilaçao = re.compile(r'\.pdf$')
 
-    REGS_INTERESSE = ['SP', 'RJ', 'NC', 'MG', 'ES']
+        edital = bsaux.html.body.findAll('a', attrs={'href': compilaçao, 'rel': 'nofollow'})
 
-    regs = pegar_regioes(bs)
-    dats = pegar_datas(bs)
-    orgs = pegar_orgaos(bs)
-    tits = pegar_titulos(bs)
-    liks = pegar_links(bs)
-        
-    with open('concdata.txt', 'w') as f:
-        for n in range(len(regs)):
-            if regs[n] in REGS_INTERESSE:
-                print(f'{regs[n]};{dats[n]};{orgs[n]};{tits[n]};{liks[n]};{edital(liks[n])}')
-                f.write(f'{regs[n]};{dats[n]};{orgs[n]};{tits[n]};{liks[n]};{edital(liks[n])}\n')
-            else:
-                continue
+        if len(edital) == 0:
+            return 'Edital não encontrado.'
+        elif len(edital) == 1:
+            return edital[0]['href']
+        elif len(edital) > 1:
+            return 'Mais de um edital encontrado.'
 
-
-main()
