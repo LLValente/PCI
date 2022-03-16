@@ -4,18 +4,42 @@ import re
 
 
 
-def Scrappy():
+class Scrappy:
 
     def __init__(self):
 
         self.html = urlopen('https://www.pciconcursos.com.br/professores/')
         self.bs = BeautifulSoup(self.html, 'html.parser')
+
+        print('\nRastreando as regioões ...' , end = '')
         
-        self.regioes = self.pegar_regioes(self.bs)
-        self.datas = self.pegar_datas(self.bs)
-        self.links = self.pegar_links(self.bs)
-        self.orgaos = self.pegar_orgaos(self.bs)
-        self.titulos = self.pegar_titulos(self.bs)
+        self.regioes = self.pegar_regioes()
+
+        print('\t(Concluído!)')
+
+        print('Rastreando as datas ...' , end = '')
+
+        self.datas = self.pegar_datas()
+
+        print('\t(Concluído!)')
+
+        print('Rastreando os links ...' , end = '')
+
+        self.links = self.pegar_links()
+
+        print('\t(Concluído!)')
+
+        print('Rastreando os órgãos ...' , end = '')
+
+        self.orgaos = self.pegar_orgaos()
+
+        print('\t(Concluído!)')
+
+        print('Rastreando os títulos ...' , end = '')
+
+        self.titulos = self.pegar_titulos()
+
+        print('\t(Concluído!)')
 
         self.regioes_de_interesse = ['SP', 
                                      'RJ', 
@@ -24,15 +48,41 @@ def Scrappy():
                                      'ES']
 
         with open('concdata.txt', 'w') as f:
-            for n in range(len(self.regioes)):
-                if self.regioes[n] in self.regioes_INTERESSE:
-                    print(f'{self.regioes[n]};{self.datas[n]};{self.orgaos[n]};{self.titulos[n]};{self.links[n]};{self.pegar_edital(self.links[n])}')
-                    f.write(f'{self.regioes[n]};{self.datas[n]};{self.orgaos[n]};{self.titulos[n]};{self.links[n]};{self.pegar_edital(self.links[n])}\n')
+
+            total_de_vagas = len(self.regioes)
+
+            for i in range(total_de_vagas):
+
+                if self.regioes[i] in self.regioes_de_interesse:
+
+                    regiao = self.regioes[i]
+
+                    data = self.datas[i]
+
+                    orgao = self.orgaos[i]
+
+                    titulo = self.titulos[i]
+
+                    link = self.links[i]
+
+                    edital = self.pegar_edital(self.links[i])
+
+                    linha = f'{regiao}; {data}; {orgao}; {titulo}; {link}; {edital}\n'
+
+                    print(f'Registrando linha: {linha}\t( {i + 1} / {total_de_vagas} )', end = '')
+
+                    f.write(linha)
+
+                    print('\t(Concluído!)')
+
                 else:
+
                     continue
 
     
-    def pegar_regioes(bs_obj):
+    def pegar_regioes(self):
+
+        bs_obj = self.bs
 
         regioes = []
 
@@ -44,7 +94,9 @@ def Scrappy():
         return regioes
 
 
-    def pegar_datas(bs_obj):
+    def pegar_datas(self):
+
+        bs_obj = self.bs
         
         datas = []
 
@@ -57,7 +109,9 @@ def Scrappy():
         return datas
 
 
-    def pegar_links(bs_obj):
+    def pegar_links(self):
+
+        bs_obj = self.bs
         
         links = []
         
@@ -69,7 +123,9 @@ def Scrappy():
         return links
 
 
-    def pegar_orgaos(bs_obj):
+    def pegar_orgaos(self):
+
+        bs_obj = self.bs
         
         orgaos = []
         
@@ -81,7 +137,9 @@ def Scrappy():
         return orgaos
 
 
-    def pegar_titulos(bs_obj):
+    def pegar_titulos(self):
+
+        bs_obj = self.bs
         
         titulos = []
         
@@ -93,7 +151,7 @@ def Scrappy():
         return titulos
 
     
-    def pegar_edital(link):
+    def pegar_edital(self, link):
 
         page = urlopen(link)
         bsaux = BeautifulSoup(page, 'html.parser')
@@ -109,3 +167,5 @@ def Scrappy():
         elif len(edital) > 1:
             return 'Mais de um edital encontrado.'
 
+
+pci = Scrappy()
